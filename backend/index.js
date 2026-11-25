@@ -5,6 +5,7 @@ const axios = require("axios");
 
 const PORT = 3000;
 const MENSAGEM_ERRO_TMDB = "Não foi possível consultar o catálogo de filmes.";
+const URL_IMAGENS = "https://image.tmdb.org/t/p/";
 
 const app = express();
 app.use(cors());
@@ -22,8 +23,16 @@ function simplificarFilme(filme) {
     titulo: filme.title,
     ano: filme.release_date ? filme.release_date.slice(0, 4) : null,
     nota: Number(filme.vote_average.toFixed(1)),
-    poster: filme.poster_path ? `https://image.tmdb.org/t/p/w342${filme.poster_path}` : null,
+    poster: filme.poster_path ? `${URL_IMAGENS}w342${filme.poster_path}` : null,
   };
+}
+
+function simplificarProvedores(provedores) {
+  const lista = provedores || [];
+  return lista.map((servico) => ({
+    nome: servico.provider_name,
+    logo: `${URL_IMAGENS}w92${servico.logo_path}`,
+  }));
 }
 
 app.get("/", (req, res) => {
@@ -54,6 +63,40 @@ app.get("/filmes", async (req, res) => {
     res.json(resposta.data.results.map(simplificarFilme));
   } catch (error) {
     console.log(error);
+    res.status(502).json({ mensagem: MENSAGEM_ERRO_TMDB });
+  }
+});
+
+app.get("/filme", async (req, res) => {
+  const id = req.query.id;
+  if (!id) {
+    return res.status(400).json({ mensagem: "Informe o id do filme." });
+  }
+  try {
+    const resposta = await tmdbClient.get(`/movie/${id}`, {
+      params: { append_to_response: "watch/providers" },
+    });
+    const detalhes = resposta.data;
+    const detalhesBrasil = detalhes["watch/providers"].results.BR || {};
+    res.json({
+      ...simplificarFilme(detalhes),
+      duracao: detalhes.runtime || null,
+      generos: detalhes.genres.map((genero) => genero.name),
+      sinopse: detalhes.overview || null,
+      fundo: detalhes.backdrop_path
+        ? `${URL_IMAGENS}w780${detalhes.backdrop_path}`
+        : null,
+      ondeAssistir: {
+        assinatura: simplificarProvedores(detalhesBrasil.flatrate),
+        aluguel: simplificarProvedores(detalhesBrasil.rent),
+        compra: simplificarProvedores(detalhesBrasil.buy),
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    if (error.response && error.response.status === 404) {
+      return res.status(404).json({ mensagem: "Filme não encontrado." });
+    }
     res.status(502).json({ mensagem: MENSAGEM_ERRO_TMDB });
   }
 });
