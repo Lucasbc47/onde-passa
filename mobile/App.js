@@ -18,9 +18,7 @@ export default function App() {
   const [termoBuscado, setTermoBuscado] = useState("");
   const [resultados, setResultados] = useState(null);
   const [filmeSelecionado, setFilmeSelecionado] = useState(null);
-  const [mensagemCarregando, setMensagemCarregando] = useState(
-    "Buscando os filmes em alta..."
-  );
+  const [buscando, setBuscando] = useState(false);
 
   useEffect(() => {
     const buscarFilmesEmAlta = async () => {
@@ -39,31 +37,53 @@ export default function App() {
     buscarFilmesEmAlta();
   }, []);
 
-  const buscar = async () => {
-    setMensagemCarregando("Procurando filmes...");
-    setCarregando(true);
-    try {
-      const resposta = await backendClient.get("/filmes", {
-        params: { busca: termo },
-      });
-      setResultados(resposta.data);
-      setTermoBuscado(termo);
-      setErro(null);
-    } catch (error) {
-      console.log(error);
-      setErro(
-        error.response?.data?.mensagem || "Não foi possível buscar os filmes."
-      );
-    } finally {
-      setCarregando(false);
-    }
-  };
+  useEffect(() => {
+    const textoBusca = termo.trim();
 
-  const limpar = () => {
-    setTermo("");
-    setResultados(null);
-    setErro(null);
-  };
+    if (textoBusca.length < 3) {
+      setBuscando(false);
+      if (textoBusca === "") {
+        setResultados(null);
+        setErro(null);
+      }
+      return;
+    }
+
+    let ativa = true;
+
+    const buscaAgendada = setTimeout(async () => {
+      setBuscando(true);
+      try {
+        const resposta = await backendClient.get("/filmes", {
+          params: { busca: textoBusca },
+        });
+        if (ativa) {
+          setResultados(resposta.data);
+          setTermoBuscado(textoBusca);
+          setErro(null);
+        }
+      } catch (error) {
+        console.log(error);
+        if (ativa) {
+          setErro(
+            error.response && error.response.data.mensagem ||
+              "Não foi possível buscar os filmes."
+          );
+        }
+      } finally {
+        if (ativa) {
+          setBuscando(false);
+        }
+      }
+    }, 600);
+
+    return () => {
+      ativa = false;
+      clearTimeout(buscaAgendada);
+    };
+  }, [termo]);
+
+  const termoCurto = termo.trim().length > 0 && termo.trim().length < 3;
 
   return (
     <SafeAreaProvider>
@@ -75,12 +95,15 @@ export default function App() {
             <Busca
               termo={termo}
               onTermoAlterado={setTermo}
-              onBuscar={buscar}
-              onLimpar={limpar}
+              onLimpar={() => setTermo("")}
+              buscando={buscando}
             />
+            {termoCurto && (
+              <Text style={styles.dica}>Digite pelo menos 3 letras.</Text>
+            )}
             <View style={styles.conteudo}>
               {carregando ? (
-                <Carregando mensagem={mensagemCarregando} />
+                <Carregando mensagem="Buscando os filmes em alta..." />
               ) : erro ? (
                 <Text style={styles.erro}>{erro}</Text>
               ) : resultados === null ? (
@@ -127,6 +150,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
     padding: 16,
+  },
+  dica: {
+    color: "#A6A6A6",
+    fontSize: 12,
+    paddingHorizontal: 16,
+    paddingTop: 6,
   },
   aviso: {
     color: "#A6A6A6",

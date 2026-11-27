@@ -29,7 +29,7 @@ const DetalhesFilme = ({ id, onVoltar }) => {
       } catch (error) {
         console.log(error);
         setErro(
-          error.response?.data?.mensagem ||
+          error.response && error.response.data.mensagem ||
             "Não foi possível carregar os detalhes.",
         );
       } finally {

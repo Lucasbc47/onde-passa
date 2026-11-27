@@ -1,6 +1,13 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
-const Busca = ({ termo, onTermoAlterado, onBuscar, onLimpar }) => {
+const Busca = ({ termo, onTermoAlterado, onLimpar, buscando }) => {
   return (
     <View style={styles.area}>
       <TextInput
@@ -10,14 +17,18 @@ const Busca = ({ termo, onTermoAlterado, onBuscar, onLimpar }) => {
         placeholderTextColor="#A6A6A6"
         onChangeText={onTermoAlterado}
       />
+      {buscando && (
+        <ActivityIndicator
+          size="small"
+          color="#FF8A00"
+          style={styles.indicador}
+        />
+      )}
       {termo !== "" && (
         <Pressable style={styles.botaoLimpar} onPress={onLimpar}>
           <Text style={styles.textoLimpar}>✕</Text>
         </Pressable>
       )}
-      <Pressable style={styles.botaoBuscar} onPress={onBuscar}>
-        <Text style={styles.textoBuscar}>Buscar</Text>
-      </Pressable>
     </View>
   );
 };
@@ -50,15 +61,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#A6A6A6",
   },
-  botaoBuscar: {
+  indicador: {
     marginLeft: 8,
-    backgroundColor: "#FF8A00",
-    borderRadius: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  textoBuscar: {
-    color: "#141414",
-    fontWeight: "bold",
   },
 });
