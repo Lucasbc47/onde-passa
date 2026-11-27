@@ -7,6 +7,7 @@ const Busca = ({ termo, onTermoAlterado, onBuscar, onLimpar }) => {
         style={styles.campo}
         value={termo}
         placeholder="Digite o título de um filme"
+        placeholderTextColor="#A6A6A6"
         onChangeText={onTermoAlterado}
       />
       {termo !== "" && (

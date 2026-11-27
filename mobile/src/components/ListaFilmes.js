@@ -1,7 +1,7 @@
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import CartaoFilme from "./CartaoFilme";
 
-const ListaFilmes = ({ titulo, filmes }) => {
+const ListaFilmes = ({ titulo, filmes, onSelecionar }) => {
   return (
     <View style={styles.lista}>
       <Text style={styles.titulo}>{titulo}</Text>
@@ -14,6 +14,7 @@ const ListaFilmes = ({ titulo, filmes }) => {
             titulo={item.titulo}
             ano={item.ano}
             nota={item.nota}
+            onSelecionar={() => onSelecionar(item.id)}
           />
         )}
       />
