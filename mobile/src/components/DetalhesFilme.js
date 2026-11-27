@@ -1,8 +1,16 @@
 import { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Carregando from "./Carregando";
 import backendClient from "../utils/backendClient";
 import { formatarDuracao, formatarNota } from "../utils/formatacao";
+import Provedores from "./Provedores";
 
 const DetalhesFilme = ({ id, onVoltar }) => {
   const [carregando, setCarregando] = useState(true);
@@ -22,7 +30,7 @@ const DetalhesFilme = ({ id, onVoltar }) => {
         console.log(error);
         setErro(
           error.response?.data?.mensagem ||
-            "Não foi possível carregar os detalhes."
+            "Não foi possível carregar os detalhes.",
         );
       } finally {
         setCarregando(false);
@@ -34,6 +42,11 @@ const DetalhesFilme = ({ id, onVoltar }) => {
   const linhaDeInformacoes = () => {
     const itens = [filme.ano, formatarDuracao(filme.duracao), ...filme.generos];
     return itens.filter((item) => item).join(" · ");
+  };
+
+  const totalDeServicos = () => {
+    const { assinatura, aluguel, compra } = filme.ondeAssistir;
+    return assinatura.length + aluguel.length + compra.length;
   };
 
   return (
@@ -64,6 +77,31 @@ const DetalhesFilme = ({ id, onVoltar }) => {
             <Text style={styles.tituloSecao}>Sinopse</Text>
             <Text style={styles.sinopse}>
               {filme.sinopse ? filme.sinopse : "Sinopse indisponível."}
+            </Text>
+            <Text style={styles.tituloSecao}>Onde assistir no Brasil</Text>
+            {totalDeServicos() === 0 ? (
+              <Text style={styles.semProvedores}>
+                Este filme não está disponível em nenhum serviço no Brasil no
+                momento.
+              </Text>
+            ) : (
+              <View>
+                <Provedores
+                  titulo="Assinatura"
+                  provedores={filme.ondeAssistir.assinatura}
+                />
+                <Provedores
+                  titulo="Aluguel"
+                  provedores={filme.ondeAssistir.aluguel}
+                />
+                <Provedores
+                  titulo="Compra"
+                  provedores={filme.ondeAssistir.compra}
+                />
+              </View>
+            )}
+            <Text style={styles.fonteDados}>
+              Dados de disponibilidade: JustWatch
             </Text>
           </View>
         </ScrollView>
@@ -138,6 +176,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "#FFFFFF",
+    marginTop: 16,
+  },
+  semProvedores: {
+    fontSize: 14,
+    color: "#A6A6A6",
+    marginTop: 6,
+  },
+  fonteDados: {
+    fontSize: 11,
+    fontStyle: "italic",
+    color: "#A6A6A6",
     marginTop: 16,
   },
   sinopse: {
