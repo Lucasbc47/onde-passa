@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 const Cabecalho = () => {
   return (
-    <View style={styles.container}>
+    <View style={styles.area}>
       <View style={styles.linha}>
         <Text style={styles.emoji}>🍿</Text>
         <Text style={styles.titulo}>OndePassa</Text>
@@ -15,7 +15,7 @@ const Cabecalho = () => {
 export default Cabecalho;
 
 const styles = StyleSheet.create({
-  container: {
+  area: {
     paddingHorizontal: 16,
     paddingTop: 16,
   },
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   },
   subtitulo: {
     fontSize: 14,
-    color: "#9A9A9A",
+    color: "#A6A6A6",
     marginTop: 4,
   },
 });
